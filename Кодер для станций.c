@@ -26,15 +26,15 @@ void newline(unsigned short lnum)
 		lines = (struct station **)realloc(lines, (1 + lines[0][0].number + 1)*sizeof(* lines));
 		lines[0][0].number += 1;
 	}
-	lines[lnum] = (struct station *)calloc(11, sizeof(struct station));     //!!!помн€т ли указатели длину своего массива?
+	lines[lnum] = (struct station *)calloc(11, sizeof(struct station));  
 	assert(lines[lnum]);
-	lines[lnum][0].number = 10;
+	lines[lnum][0].number = 10;			
 	lines[lnum][0].name = NULL;
 }
 
 void line_resize(unsigned short lnum)
 {
-	lines[lnum] = realloc(lines[lnum], (lines[lnum][0].number + 6)*sizeof(* lines[lnum]));
+	lines[lnum] = (struct station *)realloc(lines[lnum], (lines[lnum][0].number + 6)*sizeof(* lines[lnum]));
 	memset(lines[lnum] + lines[lnum][0].number + 1, 0, 5 * sizeof(*lines[lnum]));
 	lines[lnum][0].number += 5;
 	//printf("Size of %hd line was increased to %hd\n", lnum, lines[lnum][0].number);
@@ -58,7 +58,7 @@ void add_station(unsigned short lnum, unsigned short stnum_on_line)
 	this_st->trans_num = 0;
 	this_st->name = (char *)calloc(i + 1, sizeof(char));
 	strcpy(this_st->name, st_name);
-	this_st->number = stcounter++;	
+	this_st->number = stcounter++;
 	while ((c = fgetc(input)) != '.')
 		if (c == ',')
 			this_st->trans_num++;
@@ -70,13 +70,13 @@ unsigned short getline(unsigned short lnum)
 	unsigned short int line = 0;
 	short k = 0;
 	unsigned short int stnum_on_line = 1;
-	int c = 0;	
-	
+	int c = 0;
+
 	k = fscanf(input, "%hd :\n", &line);
 	if (k == -1)
 		return 0;
 	else if (k != 1) assert(0);
-	
+
 	//printf("New line %hd\n", line);
 
 	assert(line == lnum);
@@ -116,16 +116,16 @@ void putstation(struct station * this_st)
 			fprintf(output, "%s\n", s);
 		}
 	}
-	fscanf(input, ",\n");
 	for (i = 0; i < trans_num; i++)
 	{
+		fscanf(input, ",\n");
 		fscanf(input, "%s %hd", s, &nline);
 		for (j = 0; s[j] != '\0'; j++)
 			if (s[j] == '_')
 				s[j] = ' ';
 		l_len = lines[nline][0].number;
-		for (j = 1; j <= l_len && strcmp(s, lines[nline][j].name) != 0; j++);
-		if (j == l_len)
+		for (j = 1; (j <= l_len && lines[nline][j].name != NULL && strcmp(s, lines[nline][j].name) != 0); j++);
+		if (j > l_len)
 			assert(("Wrong station to transit", 0));
 		fscanf(input, "%s ", s);
 		fprintf(output, "%hd %s\n", lines[nline][j].number, s);
@@ -150,17 +150,17 @@ void putline(unsigned short line_num)
 
 int main()
 {
-	input = fopen("test_MosMetro.txt", "r");
+	input = fopen("MosMetro.txt", "r");
 	base_file = fopen("MosMetro_base.txt", "w");
 	fprintf(base_file, "   \n");			//place for number of lines
 	output = fopen("GraphMosMetro.txt", "w");
-	setlocale(LC_ALL, "Rus"); 
+	setlocale(LC_ALL, "Rus");
 	lines = (struct station **)calloc(13, sizeof(*lines));
 	lines[0] = (struct station *)calloc(1, sizeof(struct station));
 	assert(lines[0]);
 	lines[0][0].number = 12;
 	lines[0][0].name = (char *)calloc(9, sizeof(char));
-	*lines[0][0].name = "»м€ћетро";
+	strcpy(lines[0][0].name, "»м€ћетро");
 
 	unsigned short lnum = 0;
 	unsigned short i = 0, j = 0, line_len = 0;
@@ -168,7 +168,7 @@ int main()
 	{
 		lnum += getline(lnum + 1);
 	}
-	
+
 	stnum = stcounter - 1;
 	fseek(base_file, 0, 0);
 	fprintf(base_file, "%hd", lnum);
